@@ -1,0 +1,75 @@
+#!/bin/bash
+
+[ -d pics ] || {
+	echo "no folder 'pics' found, aborting"
+	exit 1
+}
+
+echo "pics folder found, continuing"
+
+#start xml document
+cat << "eof" > background.xml
+<background>
+  <starttime>
+    <year>2013</year>
+    <month>07</month>
+    <day>01</day>
+    <hour>00</hour>
+    <minute>00</minute>
+    <second>00</second>
+  </starttime>
+eof
+
+typeset -i index=0
+first=""
+previous=""
+
+for i in pics/*;do 
+	filenames[$index]=${i##*/}
+	index=$index+1
+done
+
+index=0
+
+while [ $index -lt ${#filenames[@]} ] ; do
+
+	echo "Consuming ${filenames[$index]}"
+
+	if [ $index -eq 0 ] ; then 
+		first=${filenames[$index]}
+	else
+		cat << eof >> background.xml
+  <transition>
+    <duration>1.0</duration>
+    <from>$(pwd)/pics/$previous</from>
+    <to>$(pwd)/pics/${filenames[$index]}</to>
+  </transition>
+eof
+	fi
+
+	cat << eof >> background.xml
+  <static>
+    <duration>10.0</duration>
+    <file>$(pwd)/pics/${filenames[$index]}</file>
+  </static>
+eof
+
+	previous=${filenames[$index]}
+	index=$index+1
+
+done
+
+#loop back to first picture
+cat << eof >> background.xml
+  <transition>
+    <duration>1.0</duration>
+    <from>$(pwd)/pics/$previous</from>
+    <to>$(pwd)/pics/$first</to>
+  </transition>
+eof
+
+#finish xml document
+cat << "eof" >> background.xml
+</background>
+eof
+
