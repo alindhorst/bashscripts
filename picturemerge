@@ -1,0 +1,38 @@
+#!/bin/bash
+
+[ -d ../trans ] || {
+  echo "no translation dir ../trans found"
+  exit
+}
+
+typeset -i houroffset=0
+
+[[ -n $1 ]] && {
+	houroffset=$1
+	echo "Using an offset of "$houroffset" hour(s)"
+}
+
+typeset -i minoffset=0
+
+[[ -n $2 ]] && {
+	minoffset=$2
+	echo "Using an offset of "$minoffset" minute(s)"
+}
+
+typeset -i secondsoffset=$houroffset*3600+$minoffset*60
+typeset index=1
+for i in {DJI,DSC,IMG,*BURST}*.{JPG,jpg,jpeg}; do
+ [[ -e $i ]] || continue
+ origdate=$(exif -t 0x0132 "$i"|awk '/Value/{print $2}'|sed 's/:/-/g')
+ origtime=$(exif -t 0x0132 "$i"|awk '/Value/{print $3}')
+ typeset -i unixtime=$(date -d "$origdate $origtime" +%s)
+ unixtime=$unixtime-$secondsoffset
+ targetname=$(date -d @$unixtime '+%Y%m%d_%H%M%S')
+ targettag=$(date -d @$unixtime '+%Y:%m:%d %H:%M:%S')
+ echo "$origdate $origtime -> ${targetname}_${index} ($targettag)"
+ exif -t 0x0132 --ifd=0 --set-value "$targettag" -o ../trans/${targetname}_${index}.jpg.1 "$i"
+ exif -t 0x9003 --ifd=EXIF --set-value "$targettag" -o ../trans/${targetname}_${index}.jpg.2 ../trans/${targetname}_${index}.jpg.1
+ exif -t 0x9004 --ifd=EXIF --set-value "$targettag" -o ../trans/${targetname}_${index}.jpg ../trans/${targetname}_${index}.jpg.2
+ rm ../trans/${targetname}_${index}.jpg.1 ../trans/${targetname}_${index}.jpg.2
+ index=$((index+1))
+done
