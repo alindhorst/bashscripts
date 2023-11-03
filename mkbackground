@@ -24,7 +24,7 @@ typeset -i index=0
 first=""
 previous=""
 
-for i in pics/*;do 
+for i in $(ls -1 pics/*|sort -R);do 
 	filenames[$index]=${i##*/}
 	index=$index+1
 done
