@@ -26,7 +26,7 @@ first=""
 previous=""
 
 #read filename and cut out the pics prefix
-mapfile -t filenames < <(find pics -maxdepth 1 -type f -print0 | sort -Rz | xargs -0 -I {} basename {})
+mapfile -t filenames < <(find pics -maxdepth 1 -print0 | sort -Rz | xargs -0 -I {} basename {})
 
 index=0
 
