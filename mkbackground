@@ -21,13 +21,12 @@ cat << "eof" > background.xml
 eof
 
 typeset -i index=0
+declare -a filenames
 first=""
 previous=""
 
-for i in $(ls -1 pics/*|sort -R);do 
-	filenames[$index]=${i##*/}
-	index=$index+1
-done
+#read filename and cut out the pics prefix
+mapfile -t filenames < <(find pics -maxdepth 1 -type f -print0 | sort -Rz | xargs -0 -I {} basename {})
 
 index=0
 
